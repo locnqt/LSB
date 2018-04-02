@@ -30,16 +30,26 @@ public class LSB {
     static Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) throws IOException {
-        System.out.print(" 1.Encode \n 2.Decode \n Chọn 1-2:");
-        try {
-            int n = sc.nextInt();
-            if (n == 1) {
-                Encode();
-            } else {
-                Decode();
+        int n = 1;
+        while (n != 3) {
+            try {
+                System.out.print(" 1.Encode \n 2.Decode \n 3.Exit \n Chọn 1-3:");
+                n = sc.nextInt();
+                switch (n) {
+                    case 1:
+                        Encode();
+                        break;
+                    case 2:
+                        Decode();
+                        break;
+                    case 3:
+                        break;
+                    default:
+                        System.out.println("Nhập sai!");
+                }
+            } catch (java.util.InputMismatchException ioe) {
+                System.err.println("!!Yêu cầu nhập số!!");
             }
-        } catch (java.util.InputMismatchException ioe) {
-            System.err.println("!!Yêu cầu nhập số!!");
         }
     }
 
@@ -83,12 +93,11 @@ public class LSB {
         sc.nextLine();
         String mess = sc.nextLine();
         String bin = messtobin(mess);
-        System.out.println(bin);
-        //hide mess into image
-        // Mo file
+//        System.out.println(bin);
+
         File f = new File("test.bmp");
         BufferedImage bufferedImage = ImageIO.read(f);
-        //doc file theo bytes
+
         FileInputStream fis = new FileInputStream(f);
         byte[] buf = new byte[1024];
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -106,9 +115,6 @@ public class LSB {
 //        databin = messtobin(arr.toString());
 //        System.out.println(databin);
 //        databin="";
-//        for (int j = 0; j <= 54; j++) {
-//            header += arr[j];
-//        }
         if (bin.length() > (arr.length - 1)) {
             System.out.println("message quá lớn!");
         } else {
@@ -124,30 +130,29 @@ public class LSB {
 //                newdata = databin.substring(0, 7) + temp;
 //                newdataimage += newdata;
 //                arr[i] = newdata.getBytes();
-                System.out.println(databin);
-                System.out.println(temp);
+//                System.out.println(databin);
+//                System.out.println(temp);
 //                System.out.println(newdata);
 //                System.out.println(newdataimage);
-                System.out.println(arr[i]);
+//                System.out.println(arr[i]);
             }
             int cuoimess = data + x;
-            System.out.println("cuoi mess cho 1 byte =0");
-            arr[cuoimess] = (byte) 0;
-            databin = Integer.toBinaryString((arr[cuoimess] + 256) % 256);
-            System.out.println(arr[cuoimess]);
-            System.out.println(databin);
+//            System.out.println("cuoi mess cho 1 byte =0");
+//            arr[cuoimess] = (byte) 0;
+//            databin = Integer.toBinaryString((arr[cuoimess] + 256) % 256);
+//            System.out.println(arr[cuoimess]);
+//            System.out.println(databin);
             while (databin.length() < 8) {
                 databin = "0" + databin;
             }
-            System.out.println(databin);
-//            for (int i = byteconlai; i < arr.length; i++) {
-//                databin = Integer.toBinaryString((arr[i] + 256) % 256);
-//                newdata += databin;
-//            }
+//            System.out.println(databin);
         }
         File output = new File("encrypted.bmp");
-        String destFilePath = output.getAbsolutePath();
-        saveFile(output, "bmp", arr); //Saving new image
+        if (ImageIO.write(bufferedImage, "bmp", output)) {
+            System.out.println("Save file OK!");
+        } else {
+            System.out.println("ERROR!! Không save duoc!!");
+        }
     }
 
     public static void Decode() throws IOException {
@@ -171,12 +176,10 @@ public class LSB {
                 databin += "0";
                 ktra8bit0 += 1;
                 count++;
-//                System.out.println(count + "  " + ktra8bit0 + "   " + databin.length() + "   " + databin);
             } else {
                 databin += "1";
                 ktra8bit0 = 0;
                 count++;
-//                System.out.println(count + "  " + ktra8bit0 + "   " + databin.length() + "   " + databin);
             }
             data++;
             if (count == 8) {
@@ -188,23 +191,12 @@ public class LSB {
             }
         }
         databin = databin.substring(0, databin.length() - 8);
-//        System.out.println(databin);
+        System.out.println(databin);
         for (int i = 0; i < databin.length(); i = i + 8) {
             mess += bintomess(databin.substring(i, i + 8));
         }
 //        int charCode = Integer.parseInt(databin, 2);
 //        String mess = new Character((char) charCode).toString();
         System.out.println("Message: " + mess);
-    }
-
-    public static void saveFile(File path, String tfile, byte[] bfile) {
-        try {
-            BufferedImage img = ImageIO.read(new ByteArrayInputStream(bfile));
-            if (ImageIO.write(img, tfile, path)) {
-                System.out.println("Save file OK!");
-            }
-        } catch (IOException ex) {
-            System.out.println("Không save duoc!!");
-        }
     }
 }
