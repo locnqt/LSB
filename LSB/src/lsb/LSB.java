@@ -33,6 +33,7 @@ public class LSB {
         int n = 1;
         while (n != 3) {
             try {
+                System.out.println("---------------------------------------------------------------");
                 System.out.print(" 1.Encode \n 2.Decode \n 3.Exit \n Chọn 1-3:");
                 n = sc.nextInt();
                 switch (n) {
@@ -49,6 +50,7 @@ public class LSB {
                 }
             } catch (java.util.InputMismatchException ioe) {
                 System.err.println("!!Yêu cầu nhập số!!");
+                break;
             }
         }
     }
@@ -92,39 +94,39 @@ public class LSB {
         System.out.print("Nhập message: ");
         sc.nextLine();
         String mess = sc.nextLine();
-        String bin = messtobin(mess);
+        String bin = messtobin(mess)+"00000000";
+        char[] b = bin.toCharArray();
+//        String databin = "";
 //        System.out.println(bin);
 
-        File f = new File("test.bmp");
+        File f = new File("sample-pic.bmp");
         BufferedImage bufferedImage = ImageIO.read(f);
-
-        FileInputStream fis = new FileInputStream(f);
-        byte[] buf = new byte[1024];
+        
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        for (int readNum; (readNum = fis.read(buf)) != -1;) {
-            bos.write(buf, 0, readNum);
-        }
+        ImageIO.write(bufferedImage, "bmp", bos);
         byte[] arr = bos.toByteArray();
-        int data = HEADER_SIZE + 1;
-        String databin = "";
+//        StringBuilder sb = new StringBuilder();
+//        for (byte by : arr) {
+//            sb.append(Integer.toBinaryString(by & 0xFF));
+//        }
+//        System.out.println(sb);
+//        can chuyen thanh binary
+        int data = HEADER_SIZE+1;
         char temp;
 //        String newdata = "";
 //        String newdataimage = "";
 //        String header = "";
-        int x = 0; // phan tu dau tien trong bin
-//        databin = messtobin(arr.toString());
-//        System.out.println(databin);
-//        databin="";
+        int x = 0;
         if (bin.length() > (arr.length - 1)) {
             System.out.println("message quá lớn!");
         } else {
             for (int i = data; x < bin.length(); i++) {
-                temp = bin.charAt(x);
-                x++;
+//                temp = bin.charAt(x);
+                
                 arr[i] >>= 1;
                 arr[i] <<= 1;
-                arr[i] += temp;
-                databin = Integer.toBinaryString((arr[i] + 256) % 256);
+                arr[i] += b[x];x++;
+//                databin = Integer.toBinaryString((arr[i] + 256) % 256);
 //                temp = bin.charAt(x);
 //                x++;
 //                newdata = databin.substring(0, 7) + temp;
@@ -136,19 +138,11 @@ public class LSB {
 //                System.out.println(newdataimage);
 //                System.out.println(arr[i]);
             }
-            int cuoimess = data + x;
-//            System.out.println("cuoi mess cho 1 byte =0");
-//            arr[cuoimess] = (byte) 0;
-//            databin = Integer.toBinaryString((arr[cuoimess] + 256) % 256);
-//            System.out.println(arr[cuoimess]);
-//            System.out.println(databin);
-            while (databin.length() < 8) {
-                databin = "0" + databin;
-            }
-//            System.out.println(databin);
         }
         File output = new File("encrypted.bmp");
-        if (ImageIO.write(bufferedImage, "bmp", output)) {
+        bufferedImage = ImageIO.read(new ByteArrayInputStream(arr));
+//        ImageIO.write(bufferedImage, "bmp",new File("encrypted.bmp" + ".bmp"));
+        if (ImageIO.write(bufferedImage, "bmp",output)) {
             System.out.println("Save file OK!");
         } else {
             System.out.println("ERROR!! Không save duoc!!");
@@ -191,7 +185,7 @@ public class LSB {
             }
         }
         databin = databin.substring(0, databin.length() - 8);
-        System.out.println(databin);
+//        System.out.println(databin);
         for (int i = 0; i < databin.length(); i = i + 8) {
             mess += bintomess(databin.substring(i, i + 8));
         }
