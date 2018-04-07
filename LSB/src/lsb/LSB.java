@@ -14,12 +14,12 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 
 /**
- *  
- * @author Nguyen Quang Tuan Loc _ N14DCAT097
- * LSB 24bit
+ *
+ * @author Nguyen Quang Tuan Loc _ N14DCAT097 LSB 24bit
  */
 public class LSB {
 
@@ -27,7 +27,6 @@ public class LSB {
      * @param args the command line arguments
      */
     private static int HEADER_SIZE = 54;
-
     static Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) throws IOException {
@@ -70,8 +69,7 @@ public class LSB {
 
     public static String bintomess(String bin) {
         int charCode = Integer.parseInt(bin, 2);
-        System.out.println(charCode);
-        String result = new Character((char)charCode).toString();
+        String result = new Character((char) charCode).toString();
         return result;
     }
 
@@ -79,38 +77,39 @@ public class LSB {
         System.out.print("Enter you message: ");
         sc.nextLine();
         String mess = sc.nextLine();
-        String bin = messtobin(mess)+"00000000"; //them null vao cuoi message de danh dau ket thuc
-        
+        String bin = messtobin(mess) + "00000000"; //them null vao cuoi message de danh dau ket thuc
+
         System.out.print("Enter bitmap file name: ");
         String srcname = sc.nextLine();
-        
-        File f = new File(srcname+".bmp");
+
+        File f = new File(srcname + ".bmp");
         BufferedImage bufferedImage = ImageIO.read(f);
-        
+
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ImageIO.write(bufferedImage, "bmp", bos);
         byte[] arr = bos.toByteArray();
-        
+
         int data = HEADER_SIZE;
         char temp;
         int x = 0;
-        if (bin.length() > (arr.length - 54)) {
-            System.out.println("message to large for image to hide!");
+        if (bin.length() > (arr.length - HEADER_SIZE)) {
+            System.out.println("message too large for image to hide!");
         } else {
             for (int i = 0; i < bin.length(); i++) {
                 arr[data] >>= 1;
                 arr[data] <<= 1;
-                arr[data] += (bin.charAt(i)-48);   //
+                arr[data] += (bin.charAt(i) - 48);   //
                 data++;
+//                System.out.print(bin.charAt(i) - 48);
             }
         }
-        
+//        System.out.println("");
         System.out.print("Enter name file you want to save encrypted image: ");
         String destname = sc.nextLine();
-        
-        File output = new File(destname+".bmp");
+
+        File output = new File(destname + ".bmp");
         bufferedImage = ImageIO.read(new ByteArrayInputStream(arr));
-        if (ImageIO.write(bufferedImage, "bmp",output)) {
+        if (ImageIO.write(bufferedImage, "bmp", output)) {
             System.out.println("Save file OK!");
         } else {
             System.out.println("ERROR!! Cannot save!!");
@@ -118,46 +117,50 @@ public class LSB {
     }
 
     public static void Decode() throws IOException {
-        
-        sc.nextLine();
-        System.out.print("Enter bitmap file you want to decrypt: ");
-        String destname = sc.nextLine();
-        
-        File f = new File(destname+".bmp");
-        BufferedImage bufferedImage = ImageIO.read(f);
-        
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, "bmp", bos);
-        byte[] arr = bos.toByteArray();
+        try {
+            sc.nextLine();
+            System.out.print("Enter bitmap file name you want to decrypt: ");
+            String destname = sc.nextLine();
 
-        int data = HEADER_SIZE;
-        String databin = "";
-        String mess = "";
-        int ktra8bit0 = 0; // kiem tra 8 bit 0 da duoc danh dau cuoi message
-        int count = 0; // dem bit, du 8 bit thanh 1 byte --> ktra8bit=0;
-        while (true) {
-            if (arr[data] % 2 == 0) {
-                databin += "0";
-                ktra8bit0 += 1;
-                count++;
-            } else {
-                databin += "1";
-                ktra8bit0 = 0;
-                count++;
-            }
-            data++;
-            if (count == 8) {
-                if (ktra8bit0 == 8) {
-                    break;
+            File f = new File(destname + ".bmp");
+            BufferedImage bufferedImage = ImageIO.read(f);
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "bmp", bos);
+            byte[] arr = bos.toByteArray();
+
+            int data = HEADER_SIZE;
+            String databin = "";
+            String mess = "";
+            int ktra8bit0 = 0; // kiem tra 8 bit 0 da duoc danh dau cuoi message
+            int count = 0; // dem bit, du 8 bit thanh 1 byte --> ktra8bit=0;
+            while (true) {
+                if (arr[data] % 2 == 0) {
+                    databin += "0";
+                    ktra8bit0 += 1;
+                    count++;
+                } else {
+                    databin += "1";
+                    ktra8bit0 = 0;
+                    count++;
                 }
-                ktra8bit0 = 0;
-                count = 0;
+                data++;
+                if (count == 8) {
+                    if (ktra8bit0 == 8) {
+                        break;
+                    }
+                    ktra8bit0 = 0;
+                    count = 0;
+                }
             }
+            databin = databin.substring(0, databin.length() - 8); // cat 8 bit 0 cuoi message
+//            System.out.println(databin);
+            for (int i = 0; i < databin.length(); i = i + 8) {
+                mess += bintomess(databin.substring(i, i + 8));
+            }
+            System.out.println("Message: " + mess);
+        } catch (IIOException ex) {
+            System.out.println("can't read file");
         }
-        databin = databin.substring(0, databin.length() - 8); // cat 8 bit 0 cuoi message
-        for (int i = 0; i < databin.length(); i = i + 8) {
-            mess += bintomess(databin.substring(i, i + 8));
-        }
-        System.out.println("Message: " + mess);
     }
 }
